@@ -1,5 +1,9 @@
-import asyncio, logging; logging.basicConfig(level=logging.INFO)
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import asyncio, logging; 
 import aiomysql
+logging.basicConfig(level=logging.INFO)
 
 def log(sql, args=()):
     logging.info('SQL: %s' % sql)
@@ -9,7 +13,7 @@ async def Create_Pool(loop,**kw):
 	global __pool
 	__pool = await aiomysql.create_pool(
 		host=kw.get('host','localhost'),
-		port=kw.get('port','3306'),
+		port=kw.get('port',3306),
 		user=kw['user'],
 		password=kw['password'],
 		db=kw['db'],
@@ -53,6 +57,40 @@ async def execute(sql, args, autocommit=True):
 			raise
 		return affected
 
+class Field(object):
+	def __init__(self, name, column_type, primary_key, default):
+		self.name = name
+		self.column_type = column_type
+		self.primary_key = primary_key
+		self.default = default
+	def __str__(self):
+		return '<%s,%s:%s>'%(self.__class__.__name__,self.column_type,self.name)
+
+class StringField(Field):
+
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super().__init__(name, ddl, primary_key, default)
+
+class BooleanField(Field):
+
+    def __init__(self, name=None, default=False):
+        super().__init__(name, 'boolean', False, default)
+
+class IntegerField(Field):
+
+    def __init__(self, name=None, primary_key=False, default=0):
+        super().__init__(name, 'bigint', primary_key, default)
+
+class FloatField(Field):
+
+    def __init__(self, name=None, primary_key=False, default=0.0):
+        super().__init__(name, 'real', primary_key, default)
+
+class TextField(Field):
+
+    def __init__(self, name=None, default=None):
+        super().__init__(name, 'text', False, default)
+
 class ModelMetaclass(type):
 	def __new__(cls, name, bases, attrs):
 		if name=='Model':
@@ -68,10 +106,10 @@ class ModelMetaclass(type):
 				mappings[key] = v
 				if v.primary_key:
 					if primary_key:
-						raise StandardError('duplicate primary_key for field:%s'%k)
-					else:
-						fields.append(k)
+						raise StandardError('duplicate primary_key for field:%s' % k)
 					primary_key = k
+				else:
+					fields.append(k)
 		if not primary_key:
 			raise StandardError('primary_key not found')
 		for k in mappings.keys():
@@ -112,19 +150,12 @@ class Model(dict, metaclass=ModelMetaclass):
 				setattr(self, key, value)
 		return value
 
+async def start():
+	rs=await select('select * from user',args=())
+	logging.info(rs)
 
-class Field(object):
-	def __init__(self, name, column_type, primary_key, default):
-		self.name = name
-		self.column_type = column_type
-		self.primary_key = primary_key
-		self.default = default
-	def __str__(self):
-		return '<%s,%s:%s>'%(self.__class__.__name__,self.column_type,self.name)
-
-
-def start(loop):
-	logging.INFO('create pool')
-	yield from Create_Pool(loop=loop,host='192.168.0.221',user='root',password='wjdh849283999',db='test')
-	rs=yield from select('select * from user',args=())
-	print(rs)
+if __name__ == '__main__':
+	loop = asyncio.get_event_loop()
+	loop.run_until_complete(Create_Pool(loop=loop,host='172.16.87.157',user='dbUser',password='dbuser',db='test'))
+	loop.run_until_complete(start())
+	loop.run_forever()

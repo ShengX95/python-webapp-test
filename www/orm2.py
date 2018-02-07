@@ -104,7 +104,7 @@ class ModelMetaclass(type):
         if name=='Model':
             return type.__new__(cls, name, bases, attrs)
         tableName = attrs.get('__table__', None) or name
-        logging.info('found model: %s (table: %s)' % (name, tableName))
+        logging.info('  found model: %s (table: %s)' % (name, tableName))
         mappings = dict()
         fields = []
         primaryKey = None
@@ -129,7 +129,7 @@ class ModelMetaclass(type):
         attrs['__primary_key__'] = primaryKey # 主键属性名
         attrs['__fields__'] = fields # 除主键外的属性名
         attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
-        attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
+        attrs['__insert__'] = 'insert into `%s` (%s,`%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
         attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
         attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
         return type.__new__(cls, name, bases, attrs)
@@ -237,11 +237,20 @@ class User(Model):
     id = StringField(primary_key=True, default=next_id, ddl='varchar(50)')
     name = StringField(ddl='varchar(50)')
 
-async def run ():
+class UserInfo(Model):
+    __table__ = 'userinfo'
+    id = StringField(primary_key=True, default=next_id, ddl='varchar(50)')
+    mobileNo = StringField(ddl='varchar(255)')
+    carNo = StringField(ddl='varchar(255)')
+
+async def run():
     u = User(name='Test')
     await u.save()
 
+async def run2():
+    userinfo = UserInfo(mobileNo='555555', cardNo='66666')
+    await userinfo.save()
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(Create_pool(loop,user='root', password='wjdh84928399', db='test', host='192.168.0.221'))
+    loop.run_until_complete(Create_pool(loop,user='dbUser', password='dbuser', db='test', host='172.16.87.157'))
     rs = loop.run_until_complete(run())
