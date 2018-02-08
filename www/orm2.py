@@ -250,7 +250,11 @@ async def run():
 async def run2():
     userinfo = UserInfo(mobileNo='555555', cardNo='66666')
     await userinfo.save()
+
+async def run3():
+    users = await User.findAll(orderBy='id desc')
+    logging.info(users)
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(Create_pool(loop,user='dbUser', password='dbuser', db='test', host='172.16.87.157'))
-    rs = loop.run_until_complete(run())
+    rs = loop.run_until_complete(run3())
