@@ -83,11 +83,21 @@ def init_Jinja2(app, **kw):
 	app['__template__'] = env
 
 def datetime_filter():
-	pass
+	delta = int(time.time() - t)
+	if delta < 60:
+		return u'1分钟前'
+	if delta < 3600:
+		return u'%s分钟前' % (delta // 60)
+	if delta < 86400:
+		return u'%s小时前' % (delta // 3600)
+	if delta < 604800:
+		return u'%s天前' % (delta // 86400)
+	dt = datetime.fromtimestamp(t)
+	return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
 
 async def init(evnet_loop):
 	logging.info('start init datebase...')
-	await orm.Create_Pool(loop=loop,host='192.168.0.221',user='root',password='wjdh84928399',db='test')
+	await orm.Create_Pool(loop=loop,host='172.16.87.157',user='dbUser',password='dbuser',db='test')
 	logging.info('datebase init success!!')
 	logging.info('start init webapplication...')
 	app = web.Application(loop=evnet_loop, middlewares=[
