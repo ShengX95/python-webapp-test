@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 import asyncio, os, inspect, logging, functools
 
 #define decorator @get('/path') 
@@ -23,6 +24,14 @@ def post(path):
 		func.__route__ = path
 		return wapper
 	return decorator
+=======
+import logging; logging.basicConfig(level=logging.INFO)
+import asyncio, os, inspect, functools
+
+def add_static(app):
+	path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'static')
+	app.router.add_static('/static/', path)
+	logging.info('add static %s => %s' % ('/static/',path))
 
 def add_route(app, fn):
 	method = getattr(fn, '__method__', None)
@@ -55,3 +64,4 @@ def add_static(app):
 	spath = os.path.join(os.path.dirname(__file__), 'static')
 	app.router.add_static('/static/', spath)
 	logging.info('add static %s => %s' % ('/static/', spath))
+	add_route(app, fn)
