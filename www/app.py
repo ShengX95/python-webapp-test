@@ -62,7 +62,7 @@ async def response_factory(app, handler):
 		return resp
 
 def init_Jinja2(app, **kw):
-	logging.info('init init_Jinja2')
+	logging.info('init Jinja2')
 	options = dict(
 		autoescape = kw.get('autoescape', True),
         block_start_string = kw.get('block_start_string', '{%'),
@@ -82,7 +82,7 @@ def init_Jinja2(app, **kw):
 			env.filters[name] = f
 	app['__template__'] = env
 
-def datetime_filter():
+def datetime_filter(t):
 	delta = int(time.time() - t)
 	if delta < 60:
 		return u'1分钟前'
